@@ -8,6 +8,36 @@ export type Database = {
   };
   public: {
     Tables: {
+      users: {
+        Row: {
+          avatar_url: string | null;
+          created_at: string;
+          email: string;
+          full_name: string | null;
+          id: string;
+          provider: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          avatar_url?: string | null;
+          created_at?: string;
+          email: string;
+          full_name?: string | null;
+          id: string;
+          provider?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          avatar_url?: string | null;
+          created_at?: string;
+          email?: string;
+          full_name?: string | null;
+          id?: string;
+          provider?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       invitations: {
         Row: {
           created_at: string;
@@ -140,6 +170,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      create_organization: {
+        Args: { org_name: string; owner_id: string };
+        Returns: Database["public"]["Tables"]["organizations"]["Row"];
+      };
       has_org_role: {
         Args: {
           _org: string;

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TopNav } from "@/components/TopNav";
 import { Sparkles, Loader2 } from "lucide-react";
+import { syncUserRecord } from "@/server-functions/sync-user";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
@@ -42,16 +43,37 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const result = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
             data: { full_name: fullName },
           },
         });
-        if (error) throw error;
-        toast.success("Account created. Check your email if verification is required.");
+
+        if (result.error) throw result.error;
+        if (result.data.user) {
+          await syncUserRecord({
+            data: {
+              id: result.data.user.id,
+              email: result.data.user.email ?? email,
+              fullName: fullName || result.data.user.user_metadata?.full_name || null,
+              avatarUrl:
+                result.data.user.user_metadata?.avatar_url ??
+                result.data.user.user_metadata?.picture ??
+                null,
+              provider: result.data.user.app_metadata?.provider ?? "email",
+            },
+          });
+        }
+        if (!result.data.session) {
+          toast.success("Account created. You can now sign in.");
+          setMode("signin");
+          setPassword("");
+          return;
+        }
+
+        toast.success("Account created");
         goNext();
       } else if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });

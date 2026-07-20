@@ -42,8 +42,18 @@ function Landing() {
           </div>
         </section>
 
+        <section id="about" className="grid gap-6 py-8 md:grid-cols-[0.9fr_1.1fr] md:items-start">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">About</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight">A calmer CRM built for focused teams</h2>
+          </div>
+          <p className="max-w-2xl text-base leading-7 text-muted-foreground">
+            NovaCRM AI brings organizations, contacts, and deal flow into one workspace with a clean interface that stays out of the way until you need it.
+          </p>
+        </section>
+
         {/* Feature grid */}
-        <section className="grid gap-6 md:grid-cols-3">
+        <section id="how-it-works" className="grid gap-6 md:grid-cols-3">
           {[
             {
               icon: Building2,
@@ -87,6 +97,16 @@ function Landing() {
               <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
             </div>
           ))}
+        </section>
+
+        <section id="contact" className="mt-24 rounded-3xl border border-border bg-white/80 p-10 shadow-card">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Contact</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight">Need help getting set up?</h2>
+            <p className="mt-3 text-muted-foreground">
+              If your Supabase project is still empty, apply the database migration first and then create your first organization from the Organizations page.
+            </p>
+          </div>
         </section>
 
         {/* CTA */}

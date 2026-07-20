@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Building2, Plus, Users, ArrowRight, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type OrganizationSummary = {
   id: string;
@@ -22,6 +23,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const { user } = Route.useRouteContext();
+  const avatarUrl = user.user_metadata?.avatar_url ?? user.user_metadata?.picture ?? null;
+  const avatarLabel =
+    user.user_metadata?.full_name ?? user.user_metadata?.name ?? user.email ?? "";
+  const avatarInitial = avatarLabel.trim().charAt(0).toUpperCase() || "U";
   const { data: memberships, isLoading } = useQuery({
     queryKey: ["my-orgs", user.id],
     queryFn: async () => {
@@ -37,9 +42,19 @@ function Dashboard() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
+        <div className="flex items-center gap-3">
+          <Avatar className="h-12 w-12 border border-border/60">
+            <AvatarImage src={avatarUrl ?? undefined} alt={avatarLabel} />
+            <AvatarFallback className="bg-slate-900 text-sm font-semibold text-white">
+              {avatarInitial}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {user.user_metadata?.full_name ?? user.user_metadata?.name ?? user.email}
+            </p>
+          </div>
         </div>
         <Link
           to="/organizations"
