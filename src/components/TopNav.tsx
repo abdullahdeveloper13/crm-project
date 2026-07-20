@@ -13,12 +13,24 @@ export function TopNav() {
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-elevated">
             <Sparkles className="h-4 w-4" />
           </span>
-          <span>NovaCRM<span className="text-primary"> AI</span></span>
+          <span>
+            NovaCRM<span className="text-primary"> AI</span>
+          </span>
         </Link>
         <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
-          <Link to="/" className="hover:text-foreground">Home</Link>
-          {user && <Link to="/dashboard" className="hover:text-foreground">Dashboard</Link>}
-          {user && <Link to="/organizations" className="hover:text-foreground">Organizations</Link>}
+          <Link to="/" className="hover:text-foreground">
+            Home
+          </Link>
+          {user && (
+            <Link to="/dashboard" className="hover:text-foreground">
+              Dashboard
+            </Link>
+          )}
+          {user && (
+            <Link to="/organizations" className="hover:text-foreground">
+              Organizations
+            </Link>
+          )}
         </nav>
         <div className="flex items-center gap-3">
           {loading ? null : user ? (
@@ -36,8 +48,17 @@ export function TopNav() {
             </>
           ) : (
             <>
-              <Link to="/auth" className="text-sm font-medium text-muted-foreground hover:text-foreground">Sign in</Link>
-              <Link to="/auth" search={{ mode: "signup" }} className="rounded-md bg-brand px-4 py-1.5 text-sm font-medium text-white shadow-elevated hover:opacity-90">
+              <Link
+                to="/auth"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/auth"
+                search={{ mode: "signup" }}
+                className="rounded-md bg-brand px-4 py-1.5 text-sm font-medium text-white shadow-elevated hover:opacity-90"
+              >
                 Get started
               </Link>
             </>

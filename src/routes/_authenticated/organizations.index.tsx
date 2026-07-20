@@ -6,6 +6,18 @@ import { slugify } from "@/lib/slugify";
 import { toast } from "sonner";
 import { Building2, Plus, ArrowRight, Loader2 } from "lucide-react";
 
+type OrganizationSummary = {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+};
+
+type MembershipSummary = {
+  role: string;
+  organizations: OrganizationSummary;
+};
+
 export const Route = createFileRoute("/_authenticated/organizations/")({
   component: OrgsIndex,
 });
@@ -22,7 +34,7 @@ function OrgsIndex() {
         .from("organization_members")
         .select("role, organizations(id, name, slug, created_at)");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as MembershipSummary[];
     },
   });
 
@@ -57,7 +69,9 @@ function OrgsIndex() {
 
       <section className="mt-6 rounded-xl border border-border bg-white p-5 shadow-card">
         <h2 className="font-semibold">Create a new organization</h2>
-        <p className="mt-1 text-sm text-muted-foreground">You'll be its Owner. Invite teammates in the next step.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          You'll be its Owner. Invite teammates in the next step.
+        </p>
         <form
           className="mt-4 flex flex-col gap-3 sm:flex-row"
           onSubmit={(e) => {
@@ -76,7 +90,11 @@ function OrgsIndex() {
             disabled={createOrg.isPending || !name.trim()}
             className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-elevated disabled:opacity-60"
           >
-            {createOrg.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            {createOrg.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
             Create
           </button>
         </form>
@@ -88,7 +106,7 @@ function OrgsIndex() {
           <div className="h-24 animate-pulse rounded-xl border border-border bg-white shadow-card" />
         ) : memberships && memberships.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2">
-            {memberships.map((m: any) => (
+            {memberships.map((m) => (
               <Link
                 key={m.organizations.id}
                 to="/organizations/$orgId"
@@ -97,7 +115,9 @@ function OrgsIndex() {
               >
                 <div>
                   <div className="font-semibold">{m.organizations.name}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">/{m.organizations.slug} · <span className="capitalize">{m.role}</span></div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    /{m.organizations.slug} · <span className="capitalize">{m.role}</span>
+                  </div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
               </Link>
@@ -107,7 +127,9 @@ function OrgsIndex() {
           <div className="rounded-xl border border-dashed border-border bg-white/60 p-10 text-center">
             <Building2 className="mx-auto h-8 w-8 text-muted-foreground" />
             <h3 className="mt-3 font-semibold">Nothing yet</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Create your first organization above.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Create your first organization above.
+            </p>
           </div>
         )}
       </section>

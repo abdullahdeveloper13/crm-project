@@ -29,7 +29,9 @@ function ResetPassword() {
       <main className="mx-auto max-w-md px-6 pt-16">
         <div className="rounded-2xl border border-border bg-white p-8 shadow-card">
           <h1 className="text-2xl font-semibold tracking-tight">Set a new password</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Enter a new password for your account.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Enter a new password for your account.
+          </p>
           <form onSubmit={handle} className="mt-6 space-y-4">
             <label className="block">
               <span className="mb-1.5 block text-sm font-medium">New password</span>

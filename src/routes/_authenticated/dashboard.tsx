@@ -1,7 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Plus, Users, ArrowRight } from "lucide-react";
+import { Building2, Plus, Users, ArrowRight, type LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
+
+type OrganizationSummary = {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+};
+
+type MembershipSummary = {
+  role: string;
+  organizations: OrganizationSummary;
+};
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -17,7 +30,7 @@ function Dashboard() {
         .select("role, organizations(id, name, slug, created_at)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as MembershipSummary[];
     },
   });
 
@@ -28,29 +41,39 @@ function Dashboard() {
           <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
           <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
         </div>
-        <Link to="/organizations" className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-elevated">
+        <Link
+          to="/organizations"
+          className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-elevated"
+        >
           <Plus className="h-4 w-4" /> New organization
         </Link>
       </div>
 
       <section className="mt-8 grid gap-4 md:grid-cols-3">
         <Stat label="Organizations" value={memberships?.length ?? 0} icon={Building2} />
-        <Stat label="Roles held" value={new Set(memberships?.map((m) => m.role)).size || 0} icon={Users} />
+        <Stat
+          label="Roles held"
+          value={new Set(memberships?.map((m) => m.role)).size || 0}
+          icon={Users}
+        />
         <Stat label="Status" value="Active" icon={ArrowRight} />
       </section>
 
       <section className="mt-10">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Your organizations</h2>
-          <Link to="/organizations" className="text-sm text-primary hover:underline">View all</Link>
+          <Link to="/organizations" className="text-sm text-primary hover:underline">
+            View all
+          </Link>
         </div>
         {isLoading ? (
           <div className="grid gap-3 md:grid-cols-2">
-            <Skeleton /><Skeleton />
+            <Skeleton />
+            <Skeleton />
           </div>
         ) : memberships && memberships.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2">
-            {memberships.map((m: any) => (
+            {memberships.map((m) => (
               <Link
                 key={m.organizations.id}
                 to="/organizations/$orgId"
@@ -59,7 +82,9 @@ function Dashboard() {
               >
                 <div>
                   <div className="font-semibold">{m.organizations.name}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">/{m.organizations.slug} · <span className="capitalize">{m.role}</span></div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    /{m.organizations.slug} · <span className="capitalize">{m.role}</span>
+                  </div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
               </Link>
@@ -70,7 +95,10 @@ function Dashboard() {
             <Building2 className="mx-auto h-8 w-8 text-muted-foreground" />
             <h3 className="mt-3 font-semibold">No organizations yet</h3>
             <p className="mt-1 text-sm text-muted-foreground">Create one to invite your team.</p>
-            <Link to="/organizations" className="mt-4 inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-elevated">
+            <Link
+              to="/organizations"
+              className="mt-4 inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-elevated"
+            >
               <Plus className="h-4 w-4" /> Create organization
             </Link>
           </div>
@@ -80,7 +108,7 @@ function Dashboard() {
   );
 }
 
-function Stat({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon: any }) {
+function Stat({ label, value, icon: Icon }: { label: string; value: ReactNode; icon: LucideIcon }) {
   return (
     <div className="rounded-xl border border-border bg-white p-5 shadow-card">
       <div className="flex items-center justify-between">
@@ -95,5 +123,7 @@ function Stat({ label, value, icon: Icon }: { label: string; value: React.ReactN
 }
 
 function Skeleton() {
-  return <div className="h-24 animate-pulse rounded-xl border border-border bg-white shadow-card" />;
+  return (
+    <div className="h-24 animate-pulse rounded-xl border border-border bg-white shadow-card" />
+  );
 }

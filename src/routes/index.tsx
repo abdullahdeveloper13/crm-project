@@ -22,8 +22,8 @@ function Landing() {
             <span className="text-gradient-brand"> actually love</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            NovaCRM AI unifies leads, pipelines, and conversations — then layers on AI copilots that draft emails,
-            score leads, and summarize meetings so your team can focus on closing.
+            NovaCRM AI unifies leads, pipelines, and conversations — then layers on AI copilots that
+            draft emails, score leads, and summarize meetings so your team can focus on closing.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
             <Link
@@ -45,14 +45,41 @@ function Landing() {
         {/* Feature grid */}
         <section className="grid gap-6 md:grid-cols-3">
           {[
-            { icon: Building2, title: "Organizations & workspaces", desc: "Multi-tenant orgs with granular roles: owner, admin, manager, sales, support, employee, viewer." },
-            { icon: Users, title: "Invite your team", desc: "Send secure invitations by email, assign roles, and onboard teammates in seconds." },
-            { icon: Bot, title: "AI copilots", desc: "Draft emails, score leads, and summarize meetings — powered by the latest models." },
-            { icon: Zap, title: "Pipeline that flows", desc: "Kanban deals, activities, follow-ups, and reminders that keep every rep on track." },
-            { icon: ShieldCheck, title: "Secure by default", desc: "Row-level security, protected routes, and audited access for every organization." },
-            { icon: Sparkles, title: "Beautiful UI", desc: "A workspace inspired by Stripe and Linear — fast, focused, and delightful to use." },
+            {
+              icon: Building2,
+              title: "Organizations & workspaces",
+              desc: "Multi-tenant orgs with granular roles: owner, admin, manager, sales, support, employee, viewer.",
+            },
+            {
+              icon: Users,
+              title: "Invite your team",
+              desc: "Send secure invitations by email, assign roles, and onboard teammates in seconds.",
+            },
+            {
+              icon: Bot,
+              title: "AI copilots",
+              desc: "Draft emails, score leads, and summarize meetings — powered by the latest models.",
+            },
+            {
+              icon: Zap,
+              title: "Pipeline that flows",
+              desc: "Kanban deals, activities, follow-ups, and reminders that keep every rep on track.",
+            },
+            {
+              icon: ShieldCheck,
+              title: "Secure by default",
+              desc: "Row-level security, protected routes, and audited access for every organization.",
+            },
+            {
+              icon: Sparkles,
+              title: "Beautiful UI",
+              desc: "A workspace inspired by Stripe and Linear — fast, focused, and delightful to use.",
+            },
           ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="rounded-2xl border border-border bg-white/80 p-6 shadow-card backdrop-blur">
+            <div
+              key={title}
+              className="rounded-2xl border border-border bg-white/80 p-6 shadow-card backdrop-blur"
+            >
               <div className="grid h-10 w-10 place-items-center rounded-lg bg-accent text-primary">
                 <Icon className="h-5 w-5" />
               </div>
@@ -64,8 +91,12 @@ function Landing() {
 
         {/* CTA */}
         <section className="mt-24 overflow-hidden rounded-3xl bg-brand p-10 text-center text-white shadow-elevated md:p-16">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Ready to modernize your revenue engine?</h2>
-          <p className="mx-auto mt-4 max-w-xl text-white/80">Create your first organization in under a minute. No credit card required.</p>
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            Ready to modernize your revenue engine?
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-white/80">
+            Create your first organization in under a minute. No credit card required.
+          </p>
           <Link
             to="/auth"
             search={{ mode: "signup" }}
