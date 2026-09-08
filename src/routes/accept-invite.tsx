@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { TopNav } from "@/components/TopNav";
 import { Loader2 } from "lucide-react";
@@ -12,7 +13,7 @@ type InviteRow = {
   id: string;
   organization_id: string;
   email: string;
-  role: string;
+  role: Database["public"]["Enums"]["app_role"];
   token: string;
   status: string;
   invited_by: string;

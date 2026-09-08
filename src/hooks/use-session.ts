@@ -8,15 +8,48 @@ export function useSession() {
   const syncedProfileFor = useRef<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
+    // Check if OAuth callback is in progress in hash or search params
+    const hasOAuthParams =
+      typeof window !== "undefined" &&
+      (window.location.hash.includes("access_token") ||
+        window.location.search.includes("code=") ||
+        window.location.hash.includes("refresh_token"));
+
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (!mounted) return;
       setSession(s);
       setLoading(false);
     });
+
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
+      if (!mounted) return;
+      if (data?.session) {
+        setSession(data.session);
+        setLoading(false);
+      } else if (!hasOAuthParams) {
+        setSession(null);
+        setLoading(false);
+      } else {
+        // OAuth tokens are in the URL, give Supabase a moment to process the hash
+        setTimeout(() => {
+          if (mounted) {
+            supabase.auth.getSession().then(({ data: secondData }) => {
+              if (mounted) {
+                setSession(secondData?.session ?? null);
+                setLoading(false);
+              }
+            });
+          }
+        }, 600);
+      }
     });
-    return () => sub.subscription.unsubscribe();
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

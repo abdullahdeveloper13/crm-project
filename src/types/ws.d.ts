@@ -1,4 +1,2 @@
-declare module "ws" {
-  const WebSocket: any;
-  export default WebSocket;
-}
+import type WebSocket from "ws";
+export default WebSocket;

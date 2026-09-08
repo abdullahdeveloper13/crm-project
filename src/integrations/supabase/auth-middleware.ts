@@ -80,7 +80,7 @@ export const requireSupabaseAuth = createMiddleware({ type: "function" }).server
         },
       },
       realtime: {
-        transport: WebSocket,
+        transport: WebSocket as unknown as typeof globalThis.WebSocket,
       },
       auth: {
         storage: undefined,

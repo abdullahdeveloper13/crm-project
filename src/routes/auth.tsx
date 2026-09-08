@@ -1,16 +1,31 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/hooks/use-session";
 import { toast } from "sonner";
 import { TopNav } from "@/components/TopNav";
 import { Sparkles, Loader2 } from "lucide-react";
-import { syncUserRecord } from "@/server-functions/sync-user";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
   next: z.string().optional(),
 });
+
+function sanitizeNextUrl(next?: string | null): string {
+  if (!next) return "/dashboard";
+  const trimmed = next.trim();
+  if (
+    !trimmed ||
+    trimmed === "/" ||
+    trimmed === "/auth" ||
+    trimmed.startsWith("/auth?") ||
+    trimmed.startsWith("/auth/")
+  ) {
+    return "/dashboard";
+  }
+  return trimmed;
+}
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s) => searchSchema.parse(s),
@@ -19,6 +34,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const { mode: initialMode, next } = Route.useSearch();
+  const { user, loading: sessionLoading } = useSession();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">(initialMode ?? "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,13 +42,24 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const goNext = () => navigate({ to: (next as "/dashboard") ?? "/dashboard" });
+  const targetPath = sanitizeNextUrl(next);
+
+  useEffect(() => {
+    if (!sessionLoading && user) {
+      navigate({ to: targetPath as "/dashboard" });
+    }
+  }, [user, sessionLoading, targetPath, navigate]);
+
+  const goNext = () => {
+    navigate({ to: targetPath as "/dashboard" });
+  };
 
   async function handleGoogle() {
     setLoading(true);
+    const redirectUrl = `${window.location.origin}/dashboard`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: redirectUrl },
     });
     if (error) toast.error(error.message || "Google sign-in failed");
     setLoading(false);
@@ -52,20 +79,6 @@ function AuthPage() {
         });
 
         if (result.error) throw result.error;
-        if (result.data.user) {
-          await syncUserRecord({
-            data: {
-              id: result.data.user.id,
-              email: result.data.user.email ?? email,
-              fullName: fullName || result.data.user.user_metadata?.full_name || null,
-              avatarUrl:
-                result.data.user.user_metadata?.avatar_url ??
-                result.data.user.user_metadata?.picture ??
-                null,
-              provider: result.data.user.app_metadata?.provider ?? "email",
-            },
-          });
-        }
         if (!result.data.session) {
           toast.success("Account created. You can now sign in.");
           setMode("signin");

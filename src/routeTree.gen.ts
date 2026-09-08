@@ -14,8 +14,10 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedOrganizationsRouteImport } from './routes/_authenticated/organizations'
+import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedOrganizationsIndexRouteImport } from './routes/_authenticated/organizations.index'
 import { Route as AuthenticatedOrganizationsOrgIdRouteImport } from './routes/_authenticated/organizations.$orgId'
 
@@ -43,6 +45,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -54,6 +61,11 @@ const AuthenticatedOrganizationsRoute =
     path: '/organizations',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOrganizationsIndexRoute =
   AuthenticatedOrganizationsIndexRouteImport.update({
     id: '/',
@@ -72,8 +84,10 @@ export interface FileRoutesByFullPath {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/organizations': typeof AuthenticatedOrganizationsRouteWithChildren
+  '/support': typeof AuthenticatedSupportRoute
   '/organizations/$orgId': typeof AuthenticatedOrganizationsOrgIdRoute
   '/organizations/': typeof AuthenticatedOrganizationsIndexRoute
 }
@@ -82,7 +96,9 @@ export interface FileRoutesByTo {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/organizations/$orgId': typeof AuthenticatedOrganizationsOrgIdRoute
   '/organizations': typeof AuthenticatedOrganizationsIndexRoute
 }
@@ -93,8 +109,10 @@ export interface FileRoutesById {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/organizations': typeof AuthenticatedOrganizationsRouteWithChildren
+  '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/organizations/$orgId': typeof AuthenticatedOrganizationsOrgIdRoute
   '/_authenticated/organizations/': typeof AuthenticatedOrganizationsIndexRoute
 }
@@ -105,8 +123,10 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/reset-password'
+    | '/account'
     | '/dashboard'
     | '/organizations'
+    | '/support'
     | '/organizations/$orgId'
     | '/organizations/'
   fileRoutesByTo: FileRoutesByTo
@@ -115,7 +135,9 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/reset-password'
+    | '/account'
     | '/dashboard'
+    | '/support'
     | '/organizations/$orgId'
     | '/organizations'
   id:
@@ -125,8 +147,10 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/account'
     | '/_authenticated/dashboard'
     | '/_authenticated/organizations'
+    | '/_authenticated/support'
     | '/_authenticated/organizations/$orgId'
     | '/_authenticated/organizations/'
   fileRoutesById: FileRoutesById
@@ -176,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -188,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/organizations'
       fullPath: '/organizations'
       preLoaderRoute: typeof AuthenticatedOrganizationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/support': {
+      id: '/_authenticated/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof AuthenticatedSupportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/organizations/': {
@@ -224,13 +262,17 @@ const AuthenticatedOrganizationsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedOrganizationsRoute: typeof AuthenticatedOrganizationsRouteWithChildren
+  AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedOrganizationsRoute: AuthenticatedOrganizationsRouteWithChildren,
+  AuthenticatedSupportRoute: AuthenticatedSupportRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

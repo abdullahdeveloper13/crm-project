@@ -112,6 +112,13 @@ export type Database = {
             referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "organization_members_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
         ];
       };
       organizations: {
@@ -120,6 +127,7 @@ export type Database = {
           created_by: string;
           id: string;
           name: string;
+          plan: string;
           slug: string;
           updated_at: string;
         };
@@ -128,6 +136,7 @@ export type Database = {
           created_by: string;
           id?: string;
           name: string;
+          plan?: string;
           slug: string;
           updated_at?: string;
         };
@@ -136,10 +145,290 @@ export type Database = {
           created_by?: string;
           id?: string;
           name?: string;
+          plan?: string;
           slug?: string;
           updated_at?: string;
         };
         Relationships: [];
+      };
+      contacts: {
+        Row: {
+          created_at: string;
+          email: string | null;
+          first_name: string;
+          id: string;
+          last_activity_at: string | null;
+          last_name: string;
+          organization_id: string;
+          owner_id: string | null;
+          phone: string | null;
+          source: string | null;
+          stage: Database["public"]["Enums"]["crm_stage"];
+          title: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          email?: string | null;
+          first_name: string;
+          id?: string;
+          last_activity_at?: string | null;
+          last_name: string;
+          organization_id: string;
+          owner_id?: string | null;
+          phone?: string | null;
+          source?: string | null;
+          stage?: Database["public"]["Enums"]["crm_stage"];
+          title?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string | null;
+          first_name?: string;
+          id?: string;
+          last_activity_at?: string | null;
+          last_name?: string;
+          organization_id?: string;
+          owner_id?: string | null;
+          phone?: string | null;
+          source?: string | null;
+          stage?: Database["public"]["Enums"]["crm_stage"];
+          title?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contacts_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      companies: {
+        Row: {
+          created_at: string;
+          domain: string | null;
+          id: string;
+          industry: string | null;
+          name: string;
+          organization_id: string;
+          owner_id: string | null;
+          revenue: number | null;
+          size: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          domain?: string | null;
+          id?: string;
+          industry?: string | null;
+          name: string;
+          organization_id: string;
+          owner_id?: string | null;
+          revenue?: number | null;
+          size?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          domain?: string | null;
+          id?: string;
+          industry?: string | null;
+          name?: string;
+          organization_id?: string;
+          owner_id?: string | null;
+          revenue?: number | null;
+          size?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "companies_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      deals: {
+        Row: {
+          closed_at: string | null;
+          company_id: string | null;
+          contact_id: string | null;
+          created_at: string;
+          expected_close_date: string | null;
+          id: string;
+          organization_id: string;
+          owner_id: string | null;
+          probability: number;
+          stage: Database["public"]["Enums"]["crm_stage"];
+          title: string;
+          updated_at: string;
+          value: number;
+        };
+        Insert: {
+          closed_at?: string | null;
+          company_id?: string | null;
+          contact_id?: string | null;
+          created_at?: string;
+          expected_close_date?: string | null;
+          id?: string;
+          organization_id: string;
+          owner_id?: string | null;
+          probability?: number;
+          stage?: Database["public"]["Enums"]["crm_stage"];
+          title: string;
+          updated_at?: string;
+          value?: number;
+        };
+        Update: {
+          closed_at?: string | null;
+          company_id?: string | null;
+          contact_id?: string | null;
+          created_at?: string;
+          expected_close_date?: string | null;
+          id?: string;
+          organization_id?: string;
+          owner_id?: string | null;
+          probability?: number;
+          stage?: Database["public"]["Enums"]["crm_stage"];
+          title?: string;
+          updated_at?: string;
+          value?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "deals_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "deals_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "deals_contact_id_fkey";
+            columns: ["contact_id"];
+            isOneToOne: false;
+            referencedRelation: "contacts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      activities: {
+        Row: {
+          body: string | null;
+          completed_at: string | null;
+          contact_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deal_id: string | null;
+          due_at: string | null;
+          id: string;
+          kind: Database["public"]["Enums"]["activity_kind"];
+          organization_id: string;
+          subject: string;
+        };
+        Insert: {
+          body?: string | null;
+          completed_at?: string | null;
+          contact_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deal_id?: string | null;
+          due_at?: string | null;
+          id?: string;
+          kind: Database["public"]["Enums"]["activity_kind"];
+          organization_id: string;
+          subject: string;
+        };
+        Update: {
+          body?: string | null;
+          completed_at?: string | null;
+          contact_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deal_id?: string | null;
+          due_at?: string | null;
+          id?: string;
+          kind?: Database["public"]["Enums"]["activity_kind"];
+          organization_id?: string;
+          subject?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "activities_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tasks: {
+        Row: {
+          assigned_to: string | null;
+          contact_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deal_id: string | null;
+          description: string | null;
+          due_date: string | null;
+          id: string;
+          organization_id: string;
+          priority: string;
+          status: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          assigned_to?: string | null;
+          contact_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deal_id?: string | null;
+          description?: string | null;
+          due_date?: string | null;
+          id?: string;
+          organization_id: string;
+          priority?: string;
+          status?: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          assigned_to?: string | null;
+          contact_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deal_id?: string | null;
+          description?: string | null;
+          due_date?: string | null;
+          id?: string;
+          organization_id?: string;
+          priority?: string;
+          status?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tasks_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       profiles: {
         Row: {
@@ -165,6 +454,144 @@ export type Database = {
         };
         Relationships: [];
       };
+      notifications: {
+        Row: {
+          body: string | null;
+          channel: Database["public"]["Enums"]["notification_channel"];
+          created_at: string;
+          id: string;
+          organization_id: string;
+          read_at: string | null;
+          status: Database["public"]["Enums"]["notification_status"];
+          title: string;
+          user_id: string;
+        };
+        Insert: {
+          body?: string | null;
+          channel?: Database["public"]["Enums"]["notification_channel"];
+          created_at?: string;
+          id?: string;
+          organization_id: string;
+          read_at?: string | null;
+          status?: Database["public"]["Enums"]["notification_status"];
+          title: string;
+          user_id: string;
+        };
+        Update: {
+          body?: string | null;
+          channel?: Database["public"]["Enums"]["notification_channel"];
+          created_at?: string;
+          id?: string;
+          organization_id?: string;
+          read_at?: string | null;
+          status?: Database["public"]["Enums"]["notification_status"];
+          title?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      files: {
+        Row: {
+          bucket: string;
+          contact_id: string | null;
+          created_at: string;
+          deal_id: string | null;
+          id: string;
+          mime_type: string | null;
+          name: string;
+          organization_id: string;
+          path: string;
+          size_bytes: number | null;
+          uploaded_by: string | null;
+        };
+        Insert: {
+          bucket?: string;
+          contact_id?: string | null;
+          created_at?: string;
+          deal_id?: string | null;
+          id?: string;
+          mime_type?: string | null;
+          name: string;
+          organization_id: string;
+          path: string;
+          size_bytes?: number | null;
+          uploaded_by?: string | null;
+        };
+        Update: {
+          bucket?: string;
+          contact_id?: string | null;
+          created_at?: string;
+          deal_id?: string | null;
+          id?: string;
+          mime_type?: string | null;
+          name?: string;
+          organization_id?: string;
+          path?: string;
+          size_bytes?: number | null;
+          uploaded_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "files_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      audit_logs: {
+        Row: {
+          action: string;
+          actor_id: string | null;
+          after_data: Json | null;
+          before_data: Json | null;
+          created_at: string;
+          entity_id: string | null;
+          entity_type: string;
+          id: string;
+          organization_id: string;
+        };
+        Insert: {
+          action: string;
+          actor_id?: string | null;
+          after_data?: Json | null;
+          before_data?: Json | null;
+          created_at?: string;
+          entity_id?: string | null;
+          entity_type: string;
+          id?: string;
+          organization_id: string;
+        };
+        Update: {
+          action?: string;
+          actor_id?: string | null;
+          after_data?: Json | null;
+          before_data?: Json | null;
+          created_at?: string;
+          entity_id?: string | null;
+          entity_type?: string;
+          id?: string;
+          organization_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -173,6 +600,10 @@ export type Database = {
       create_organization: {
         Args: { org_name: string; owner_id: string };
         Returns: Database["public"]["Tables"]["organizations"]["Row"];
+      };
+      accept_invitation: {
+        Args: { invite_token: string };
+        Returns: string;
       };
       has_org_role: {
         Args: {
@@ -186,6 +617,10 @@ export type Database = {
     };
     Enums: {
       app_role: "owner" | "admin" | "manager" | "sales" | "support" | "employee" | "viewer";
+      crm_stage: "lead" | "qualified" | "proposal" | "won" | "lost";
+      activity_kind: "call" | "email" | "meeting" | "note" | "task" | "system";
+      notification_channel: "in_app" | "email";
+      notification_status: "pending" | "sent" | "read";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -308,6 +743,10 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "manager", "sales", "support", "employee", "viewer"],
+      crm_stage: ["lead", "qualified", "proposal", "won", "lost"],
+      activity_kind: ["call", "email", "meeting", "note", "task", "system"],
+      notification_channel: ["in_app", "email"],
+      notification_status: ["pending", "sent", "read"],
     },
   },
 } as const;

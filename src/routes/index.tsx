@@ -1,12 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TopNav } from "@/components/TopNav";
-import { ArrowRight, Bot, Building2, ShieldCheck, Sparkles, Users, Zap } from "lucide-react";
+import { useSession } from "@/hooks/use-session";
+import {
+  ArrowRight,
+  Bot,
+  Building2,
+  ShieldCheck,
+  Sparkles,
+  Users,
+  Zap,
+  LayoutDashboard,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Landing,
 });
 
 function Landing() {
+  const { user, loading } = useSession();
+
   return (
     <div className="min-h-screen bg-hero">
       <TopNav />
@@ -26,29 +38,52 @@ function Landing() {
             draft emails, score leads, and summarize meetings so your team can focus on closing.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              to="/auth"
-              search={{ mode: "signup" }}
-              className="inline-flex items-center gap-2 rounded-md bg-brand px-6 py-3 text-sm font-semibold text-white shadow-elevated hover:opacity-95"
-            >
-              Start free <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              to="/auth"
-              className="rounded-md border border-border bg-white px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted"
-            >
-              Sign in
-            </Link>
+            {!loading && user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white shadow-elevated hover:opacity-95"
+                >
+                  <LayoutDashboard className="h-4 w-4" /> Go to Dashboard{" "}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  to="/organizations"
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted"
+                >
+                  <Building2 className="h-4 w-4" /> Manage Workspaces
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/auth"
+                  search={{ mode: "signup" }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white shadow-elevated hover:opacity-95"
+                >
+                  Start free <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  to="/auth"
+                  className="rounded-xl border border-border bg-white px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted"
+                >
+                  Sign in
+                </Link>
+              </>
+            )}
           </div>
         </section>
 
         <section id="about" className="grid gap-6 py-8 md:grid-cols-[0.9fr_1.1fr] md:items-start">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">About</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight">A calmer CRM built for focused teams</h2>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight">
+              A calmer CRM built for focused teams
+            </h2>
           </div>
           <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-            NovaCRM AI brings organizations, contacts, and deal flow into one workspace with a clean interface that stays out of the way until you need it.
+            NovaCRM AI brings organizations, contacts, and deal flow into one workspace with a clean
+            interface that stays out of the way until you need it.
           </p>
         </section>
 
@@ -99,12 +134,16 @@ function Landing() {
           ))}
         </section>
 
-        <section id="contact" className="mt-24 rounded-3xl border border-border bg-white/80 p-10 shadow-card">
+        <section
+          id="contact"
+          className="mt-24 rounded-3xl border border-border bg-white/80 p-10 shadow-card"
+        >
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Contact</p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight">Need help getting set up?</h2>
             <p className="mt-3 text-muted-foreground">
-              If your Supabase project is still empty, apply the database migration first and then create your first organization from the Organizations page.
+              If your Supabase project is still empty, apply the database migration first and then
+              create your first organization from the Organizations page.
             </p>
           </div>
         </section>
@@ -117,13 +156,22 @@ function Landing() {
           <p className="mx-auto mt-4 max-w-xl text-white/80">
             Create your first organization in under a minute. No credit card required.
           </p>
-          <Link
-            to="/auth"
-            search={{ mode: "signup" }}
-            className="mt-8 inline-flex items-center gap-2 rounded-md bg-white px-6 py-3 text-sm font-semibold text-primary hover:bg-white/90"
-          >
-            Create your workspace <ArrowRight className="h-4 w-4" />
-          </Link>
+          {!loading && user ? (
+            <Link
+              to="/dashboard"
+              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-primary hover:bg-white/90"
+            >
+              Go to Dashboard <ArrowRight className="h-4 w-4" />
+            </Link>
+          ) : (
+            <Link
+              to="/auth"
+              search={{ mode: "signup" }}
+              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-primary hover:bg-white/90"
+            >
+              Create your workspace <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
         </section>
       </main>
       <footer className="border-t border-border/60 py-8 text-center text-sm text-muted-foreground">

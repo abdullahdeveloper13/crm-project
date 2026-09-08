@@ -1,47 +1,89 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { toast } from "sonner";
-import { ArrowLeft, Copy, Loader2, Trash2, UserPlus } from "lucide-react";
+import { useSession } from "@/hooks/use-session";
+import { useEffect, useState } from "react";
+import { z } from "zod";
+import {
+  LayoutDashboard,
+  DollarSign,
+  Users,
+  Building2,
+  CheckSquare,
+  Activity,
+  UserPlus,
+  ShieldAlert,
+  Settings,
+  Sparkles,
+  Search,
+  Menu,
+} from "lucide-react";
+import {
+  canManageCompanies,
+  canManageContacts,
+  canManageDeals,
+  canManageMembers,
+  canManageTasks,
+  canManageActivities,
+  type AppRole,
+} from "@/lib/crm-helpers";
+import { isWorkspaceTab, rememberLastOrgId, type WorkspaceTab } from "@/lib/safe-redirect";
+import { toUserFacingError, logTechnicalError } from "@/lib/supabase-errors";
+import { ErrorState, LoadingState } from "@/components/PageState";
+import { WorkspaceOverview } from "@/components/crm/WorkspaceOverview";
+import { ContactsView } from "@/components/crm/ContactsView";
+import { CompaniesView } from "@/components/crm/CompaniesView";
+import { DealsPipelineView } from "@/components/crm/DealsPipelineView";
+import { TasksView } from "@/components/crm/TasksView";
+import { ActivitiesView } from "@/components/crm/ActivitiesView";
+import { TeamMembersView } from "@/components/crm/TeamMembersView";
+import { AuditLogsView } from "@/components/crm/AuditLogsView";
+import { OrgSettingsView } from "@/components/crm/OrgSettingsView";
+import { AICopilotModal } from "@/components/crm/AICopilotModal";
+import { GlobalSearchModal } from "@/components/GlobalSearchModal";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-const ROLES = ["owner", "admin", "manager", "sales", "support", "employee", "viewer"] as const;
-type Role = (typeof ROLES)[number];
-
-type ProfileSummary = {
-  full_name: string | null;
-  avatar_url: string | null;
-};
-
-type MemberRow = {
-  id: string;
-  role: Role;
-  user_id: string;
-  created_at: string;
-  profiles?: ProfileSummary | null;
-};
-
-type InvitationRow = {
-  id: string;
-  organization_id: string;
-  email: string;
-  role: Role;
-  token: string;
-  status: string;
-  invited_by: string;
-  expires_at: string;
-  created_at: string;
-};
+const workspaceSearchSchema = z.object({
+  tab: z
+    .enum([
+      "overview",
+      "pipeline",
+      "contacts",
+      "companies",
+      "tasks",
+      "activities",
+      "team",
+      "audit_logs",
+      "settings",
+    ])
+    .optional(),
+});
 
 export const Route = createFileRoute("/_authenticated/organizations/$orgId")({
+  validateSearch: (s) => workspaceSearchSchema.parse(s),
   component: OrgDetail,
 });
 
+type TabItem = { id: WorkspaceTab; label: string; icon: typeof LayoutDashboard };
+
 function OrgDetail() {
   const { orgId } = Route.useParams();
-  const { user } = Route.useRouteContext();
-  const qc = useQueryClient();
+  const { tab: tabFromUrl } = Route.useSearch();
   const navigate = useNavigate();
+  const { user } = useSession();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
+  const [copilotContext, setCopilotContext] = useState<
+    | {
+        contactName?: string;
+        companyName?: string;
+        dealTitle?: string;
+        dealValue?: number;
+        stage?: string;
+      }
+    | undefined
+  >(undefined);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const org = useQuery({
     queryKey: ["org", orgId],
@@ -50,307 +92,325 @@ function OrgDetail() {
         .from("organizations")
         .select("*")
         .eq("id", orgId)
-        .single();
-      if (error) throw error;
+        .maybeSingle();
+      if (error) {
+        logTechnicalError("load organization", error);
+        throw error;
+      }
       return data;
     },
+    enabled: !!orgId,
   });
 
-  const members = useQuery({
-    queryKey: ["org-members", orgId],
+  const memberInfo = useQuery({
+    queryKey: ["org-my-role", orgId, user?.id],
     queryFn: async () => {
+      if (!user) return null;
       const { data, error } = await supabase
         .from("organization_members")
-        .select(
-          "id, role, user_id, created_at, profiles:profiles!organization_members_user_id_fkey(full_name, avatar_url)",
-        )
+        .select("role")
         .eq("organization_id", orgId)
-        .order("created_at", { ascending: true });
+        .eq("user_id", user.id)
+        .maybeSingle();
       if (error) {
-        // profiles fk name may not exist; retry without join
-        const fallback = await supabase
-          .from("organization_members")
-          .select("id, role, user_id, created_at")
-          .eq("organization_id", orgId);
-        if (fallback.error) throw fallback.error;
-        return fallback.data as MemberRow[];
+        logTechnicalError("load membership", error);
+        throw error;
       }
-      return data as MemberRow[];
+      return (data?.role as AppRole) || null;
     },
+    enabled: !!user && !!orgId,
   });
 
-  const invitations = useQuery({
-    queryKey: ["invitations", orgId],
+  const orgSwitcher = useQuery({
+    queryKey: ["my-orgs", user?.id],
     queryFn: async () => {
+      if (!user) return [];
       const { data, error } = await supabase
-        .from("invitations")
-        .select("*")
-        .eq("organization_id", orgId)
-        .order("created_at", { ascending: false });
+        .from("organization_members")
+        .select("role, organizations(id, name)")
+        .eq("user_id", user.id);
       if (error) throw error;
-      return data as InvitationRow[];
+      return (data ?? []).filter((m) => m.organizations);
     },
+    enabled: !!user,
   });
 
-  const memberRows = members.data ?? [];
-  const invitationRows = invitations.data ?? [];
-  const myRole = memberRows.find((m) => m.user_id === user.id)?.role;
-  const canManage = myRole === "owner" || myRole === "admin";
+  useEffect(() => {
+    if (org.data?.id) rememberLastOrgId(org.data.id);
+  }, [org.data?.id]);
 
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<Role>("sales");
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
-  const invite = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("invitations").insert({
-        organization_id: orgId,
-        email: inviteEmail.trim().toLowerCase(),
-        role: inviteRole,
-        invited_by: user.id,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Invitation created");
-      setInviteEmail("");
-      qc.invalidateQueries({ queryKey: ["invitations", orgId] });
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
-  });
+  const myRole = memberInfo.data;
+  const canManage = canManageMembers(myRole ?? undefined);
+  const requestedTab: WorkspaceTab = isWorkspaceTab(tabFromUrl) ? tabFromUrl : "overview";
+  const activeTab: WorkspaceTab =
+    requestedTab === "audit_logs" && !canManage ? "overview" : requestedTab;
 
-  const updateRole = useMutation({
-    mutationFn: async ({ id, role }: { id: string; role: Role }) => {
-      const { error } = await supabase.from("organization_members").update({ role }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Role updated");
-      qc.invalidateQueries({ queryKey: ["org-members", orgId] });
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
-  });
+  function setTab(next: WorkspaceTab) {
+    setMobileNavOpen(false);
+    navigate({
+      to: "/organizations/$orgId",
+      params: { orgId },
+      search: { tab: next },
+      replace: true,
+    });
+  }
 
-  const removeMember = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("organization_members").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Member removed");
-      qc.invalidateQueries({ queryKey: ["org-members", orgId] });
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
-  });
+  if (!user) return null;
 
-  const revokeInvite = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("invitations").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["invitations", orgId] }),
-  });
+  if (org.isLoading || memberInfo.isLoading) {
+    return <LoadingState label="Loading organization workspace..." />;
+  }
 
-  const leaveOrg = useMutation({
-    mutationFn: async () => {
-      const meRow = memberRows.find((m) => m.user_id === user.id);
-      if (!meRow) throw new Error("Not a member");
-      const { error } = await supabase.from("organization_members").delete().eq("id", meRow.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("You left the organization");
-      navigate({ to: "/organizations" });
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
-  });
+  if (org.isError) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-16">
+        <ErrorState
+          title="The workspace could not be loaded"
+          description={toUserFacingError(org.error, "The workspace could not be loaded.")}
+          onRetry={() => org.refetch()}
+        />
+      </main>
+    );
+  }
 
-  if (org.isLoading) return <div className="p-10">Loading…</div>;
-  if (org.error || !org.data)
-    return <div className="p-10">Organization not found or you don't have access.</div>;
+  if (!org.data || !myRole) {
+    return (
+      <main className="mx-auto max-w-lg px-6 py-16 text-center">
+        <div className="rounded-2xl border border-border bg-white p-10 shadow-card">
+          <h2 className="text-2xl font-semibold">Workspace not found</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            You do not have access to this organization, or it no longer exists.
+          </p>
+          <Link
+            to="/organizations"
+            className="mt-6 inline-flex rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white"
+          >
+            Back to organizations
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const tabs: TabItem[] = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "pipeline", label: "Pipeline", icon: DollarSign },
+    { id: "contacts", label: "Contacts", icon: Users },
+    { id: "companies", label: "Companies", icon: Building2 },
+    { id: "tasks", label: "Tasks", icon: CheckSquare },
+    { id: "activities", label: "Activities", icon: Activity },
+    { id: "team", label: "Team", icon: UserPlus },
+    ...(canManage ? [{ id: "audit_logs" as const, label: "Audit Logs", icon: ShieldAlert }] : []),
+    { id: "settings", label: "Settings", icon: Settings },
+  ];
+
+  const nav = (
+    <nav className="space-y-1" aria-label="Workspace">
+      {tabs.map((t) => {
+        const Icon = t.icon;
+        const isActive = activeTab === t.id;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
+              isActive
+                ? "bg-slate-900 text-white"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            {t.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <Link
-        to="/organizations"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back
-      </Link>
-      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{org.data.name}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            /{org.data.slug} · Your role:{" "}
-            <span className="capitalize font-medium">{myRole ?? "—"}</span>
-          </p>
+    <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <aside className="hidden w-56 shrink-0 lg:block">
+        <div className="sticky top-24 space-y-4 rounded-2xl border border-border bg-white p-3 shadow-card">
+          <label className="block px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Workspace
+          </label>
+          <select
+            aria-label="Switch organization"
+            className="w-full rounded-lg border border-input bg-background px-2 py-2 text-sm"
+            value={orgId}
+            onChange={(e) =>
+              navigate({
+                to: "/organizations/$orgId",
+                params: { orgId: e.target.value },
+                search: { tab: activeTab },
+              })
+            }
+          >
+            {(orgSwitcher.data ?? []).map((m) => (
+              <option key={m.organizations!.id} value={m.organizations!.id}>
+                {m.organizations!.name}
+              </option>
+            ))}
+          </select>
+          {nav}
         </div>
-        <button
-          onClick={() => leaveOrg.mutate()}
-          className="rounded-md border border-border bg-white px-3 py-1.5 text-sm hover:bg-muted"
-        >
-          Leave organization
-        </button>
+      </aside>
+
+      <div className="min-w-0 flex-1 space-y-5">
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 shadow-card sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-border lg:hidden"
+              onClick={() => setMobileNavOpen(true)}
+              aria-label="Open workspace menu"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-lg font-semibold tracking-tight">{org.data.name}</h1>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold capitalize">
+                  {myRole}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                /{org.data.slug} · {org.data.plan || "starter"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted"
+            >
+              <Search className="h-3.5 w-3.5" />
+              Search
+              <kbd className="hidden rounded bg-white px-1.5 py-0.5 font-mono text-[10px] sm:inline">
+                ⌘K
+              </kbd>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCopilotContext({ companyName: org.data.name });
+                setIsCopilotOpen(true);
+              }}
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:bg-muted"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Drafts
+            </button>
+          </div>
+        </div>
+
+        {activeTab === "overview" && (
+          <WorkspaceOverview
+            orgId={orgId}
+            canEditContacts={canManageContacts(myRole)}
+            canEditDeals={canManageDeals(myRole)}
+            onNavigateTab={(tab) => {
+              if (isWorkspaceTab(tab)) setTab(tab);
+            }}
+            onOpenAICopilot={() => {
+              setCopilotContext({ companyName: org.data.name });
+              setIsCopilotOpen(true);
+            }}
+            onOpenNewDeal={() => setTab("pipeline")}
+            onOpenNewContact={() => setTab("contacts")}
+          />
+        )}
+
+        {activeTab === "pipeline" && (
+          <DealsPipelineView
+            orgId={orgId}
+            userId={user.id}
+            canEdit={canManageDeals(myRole)}
+            onOpenAICopilotForDeal={(deal) => {
+              setCopilotContext({
+                dealTitle: deal.title,
+                dealValue: deal.value,
+                stage: deal.stage,
+                companyName: org.data.name,
+              });
+              setIsCopilotOpen(true);
+            }}
+          />
+        )}
+
+        {activeTab === "contacts" && (
+          <ContactsView
+            orgId={orgId}
+            userId={user.id}
+            canEdit={canManageContacts(myRole)}
+            onOpenAICopilotForContact={(c) => {
+              setCopilotContext({
+                contactName: c.name,
+                companyName: org.data.name,
+              });
+              setIsCopilotOpen(true);
+            }}
+          />
+        )}
+
+        {activeTab === "companies" && (
+          <CompaniesView orgId={orgId} userId={user.id} canEdit={canManageCompanies(myRole)} />
+        )}
+
+        {activeTab === "tasks" && (
+          <TasksView orgId={orgId} userId={user.id} canEdit={canManageTasks(myRole)} />
+        )}
+
+        {activeTab === "activities" && (
+          <ActivitiesView orgId={orgId} userId={user.id} canEdit={canManageActivities(myRole)} />
+        )}
+
+        {activeTab === "team" && (
+          <TeamMembersView orgId={orgId} userId={user.id} canManage={canManage} />
+        )}
+
+        {activeTab === "audit_logs" && <AuditLogsView orgId={orgId} />}
+
+        {activeTab === "settings" && (
+          <OrgSettingsView org={org.data} myRole={myRole} userId={user.id} />
+        )}
       </div>
 
-      {/* Invite */}
-      {canManage && (
-        <section className="mt-8 rounded-xl border border-border bg-white p-5 shadow-card">
-          <h2 className="font-semibold">Invite a teammate</h2>
-          <form
-            className="mt-4 flex flex-col gap-3 sm:flex-row"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (inviteEmail) invite.mutate();
-            }}
-          >
-            <input
-              type="email"
-              required
-              placeholder="teammate@company.com"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-4 focus:ring-ring/20"
-            />
-            <select
-              value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value as Role)}
-              className="rounded-md border border-input bg-background px-3 py-2 text-sm capitalize"
-            >
-              {ROLES.filter((r) => r !== "owner").map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-            <button
-              disabled={invite.isPending}
-              className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-elevated disabled:opacity-60"
-            >
-              {invite.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <UserPlus className="h-4 w-4" />
-              )}{" "}
-              Invite
-            </button>
-          </form>
-        </section>
-      )}
+      <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+        <SheetContent side="left" className="w-72">
+          <SheetHeader>
+            <SheetTitle>Workspace</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">{nav}</div>
+        </SheetContent>
+      </Sheet>
 
-      {/* Members */}
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold">Members</h2>
-        <div className="overflow-hidden rounded-xl border border-border bg-white shadow-card">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3">Member</th>
-                <th className="px-4 py-3">Role</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {memberRows.map((m) => (
-                <tr key={m.id} className="border-t border-border">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">
-                      {m.profiles?.full_name ?? m.user_id.slice(0, 8)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {m.user_id === user.id ? "You" : m.user_id.slice(0, 8) + "…"}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {canManage && m.user_id !== user.id ? (
-                      <select
-                        value={m.role}
-                        onChange={(e) =>
-                          updateRole.mutate({ id: m.id, role: e.target.value as Role })
-                        }
-                        className="rounded-md border border-input bg-background px-2 py-1 capitalize"
-                      >
-                        {ROLES.map((r) => (
-                          <option key={r} value={r}>
-                            {r}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className="capitalize">{m.role}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {canManage && m.user_id !== user.id && (
-                      <button
-                        onClick={() => removeMember.mutate(m.id)}
-                        className="inline-flex items-center gap-1 text-sm text-destructive hover:underline"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" /> Remove
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <AICopilotModal
+        isOpen={isCopilotOpen}
+        onClose={() => setIsCopilotOpen(false)}
+        contextData={copilotContext}
+      />
 
-      {/* Invitations */}
-      {canManage && (
-        <section className="mt-8">
-          <h2 className="mb-3 text-lg font-semibold">Pending invitations</h2>
-          <div className="overflow-hidden rounded-xl border border-border bg-white shadow-card">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Role</th>
-                  <th className="px-4 py-3">Link</th>
-                  <th className="px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {invitationRows.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                      No pending invitations
-                    </td>
-                  </tr>
-                )}
-                {invitationRows.map((inv) => {
-                  const link = `${window.location.origin}/accept-invite?token=${inv.token}`;
-                  return (
-                    <tr key={inv.id} className="border-t border-border">
-                      <td className="px-4 py-3">{inv.email}</td>
-                      <td className="px-4 py-3 capitalize">{inv.role}</td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(link);
-                            toast.success("Invite link copied");
-                          }}
-                          className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                        >
-                          <Copy className="h-3.5 w-3.5" /> Copy link
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => revokeInvite.mutate(inv.id)}
-                          className="text-sm text-destructive hover:underline"
-                        >
-                          Revoke
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-    </main>
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        orgId={orgId}
+        onSelectResult={(tab) => {
+          if (isWorkspaceTab(tab)) setTab(tab);
+        }}
+      />
+    </div>
   );
 }
