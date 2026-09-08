@@ -5,6 +5,12 @@ import { toast } from "sonner";
 import { TopNav } from "@/components/TopNav";
 
 export const Route = createFileRoute("/reset-password")({
+  head: () => ({
+    meta: [
+      { title: "Reset password | NovaCRM AI" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: ResetPassword,
 });
 

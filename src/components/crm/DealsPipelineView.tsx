@@ -26,6 +26,7 @@ import {
   type CrmStage,
 } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 type DealRow = Database["public"]["Tables"]["deals"]["Row"];
 
@@ -48,6 +49,7 @@ export function DealsPipelineView({
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<DealRow | null>(null);
+  const [dealToDelete, setDealToDelete] = useState<DealRow | null>(null);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -202,6 +204,7 @@ export function DealsPipelineView({
     },
     onSuccess: () => {
       toast.success("Deal deleted");
+      setDealToDelete(null);
       qc.invalidateQueries({ queryKey: ["deals", orgId] });
     },
     onError: (err) => {
@@ -510,11 +513,7 @@ export function DealsPipelineView({
                         )}
                         {canEdit && (
                           <button
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete ${d.title}?`)) {
-                                deleteMutation.mutate(d.id);
-                              }
-                            }}
+                            onClick={() => setDealToDelete(d)}
                             title="Delete Deal"
                             className="grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:bg-red-50 hover:text-destructive"
                           >
@@ -677,6 +676,19 @@ export function DealsPipelineView({
           </form>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmationDialog
+        open={dealToDelete !== null}
+        onOpenChange={(open) => !open && setDealToDelete(null)}
+        itemLabel="deal"
+        description={
+          dealToDelete
+            ? `This will permanently delete ${dealToDelete.title} and its pipeline record. This action cannot be undone.`
+            : undefined
+        }
+        isPending={deleteMutation.isPending}
+        error={deleteMutation.error}
+        onConfirm={() => dealToDelete && deleteMutation.mutate(dealToDelete.id)}
+      />
     </div>
   );
 }

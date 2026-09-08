@@ -13,6 +13,16 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "NovaCRM AI | AI-powered CRM for modern sales teams" },
+      {
+        name: "description",
+        content:
+          "NovaCRM AI unifies leads, deals, and customer conversations with AI copilots for focused sales teams.",
+      },
+    ],
+  }),
   component: Landing,
 });
 

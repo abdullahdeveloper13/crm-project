@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { formatDate, logAuditEvent, type ActivityKind } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 
@@ -46,6 +47,7 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
   const [search, setSearch] = useState("");
   const [selectedKind, setSelectedKind] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activityToDelete, setActivityToDelete] = useState<string | null>(null);
 
   // Form state
   const [kind, setKind] = useState<ActivityKind>("call");
@@ -144,6 +146,7 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
     },
     onSuccess: () => {
       toast.success("Activity deleted");
+      setActivityToDelete(null);
       qc.invalidateQueries({ queryKey: ["activities", orgId] });
     },
     onError: (err) => {
@@ -285,11 +288,7 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
 
                       {canEdit && (
                         <button
-                          onClick={() => {
-                            if (confirm("Delete this activity record?")) {
-                              deleteMutation.mutate(act.id);
-                            }
-                          }}
+                          onClick={() => setActivityToDelete(act.id)}
                           className="opacity-0 group-hover:opacity-100 transition grid h-7 w-7 place-items-center rounded-lg border border-border text-muted-foreground hover:bg-red-50 hover:text-destructive"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -436,6 +435,14 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
           </form>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmationDialog
+        open={activityToDelete !== null}
+        onOpenChange={(open) => !open && setActivityToDelete(null)}
+        itemLabel="activity record"
+        isPending={deleteMutation.isPending}
+        error={deleteMutation.error}
+        onConfirm={() => activityToDelete && deleteMutation.mutate(activityToDelete)}
+      />
     </div>
   );
 }

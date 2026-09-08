@@ -5,6 +5,7 @@ import { TopNav } from "@/components/TopNav";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
+  head: () => ({ meta: [{ name: "robots", content: "noindex, nofollow, noarchive" }] }),
   component: AuthenticatedLayout,
 });
 

@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /auth
+Disallow: /accept-invite
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /organizations
+Disallow: /account
+Disallow: /support
+Sitemap: /sitemap.xml

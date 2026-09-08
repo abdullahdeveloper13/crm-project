@@ -29,6 +29,13 @@ function sanitizeNextUrl(next?: string | null): string {
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s) => searchSchema.parse(s),
+  head: () => ({
+    meta: [
+      { title: "Sign in | NovaCRM AI" },
+      { name: "description", content: "Sign in or create a NovaCRM AI workspace." },
+      { name: "robots", content: "noindex, follow" },
+    ],
+  }),
   component: AuthPage,
 });
 

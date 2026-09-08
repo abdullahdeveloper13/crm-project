@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { STAGE_CONFIG, formatDate, logAuditEvent, type CrmStage } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 type ContactRow = Database["public"]["Tables"]["contacts"]["Row"];
 
@@ -40,6 +41,7 @@ export function ContactsView({
   const [selectedStage, setSelectedStage] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<ContactRow | null>(null);
+  const [contactToDelete, setContactToDelete] = useState<ContactRow | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importCsvText, setImportCsvText] = useState("");
 
@@ -143,6 +145,7 @@ export function ContactsView({
     },
     onSuccess: () => {
       toast.success("Contact deleted");
+      setContactToDelete(null);
       qc.invalidateQueries({ queryKey: ["contacts", orgId] });
     },
     onError: (err) => {
@@ -430,11 +433,7 @@ export function ContactsView({
                         )}
                         {canEdit && (
                           <button
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete ${fullName}?`)) {
-                                deleteMutation.mutate(c.id);
-                              }
-                            }}
+                            onClick={() => setContactToDelete(c)}
                             title="Delete Contact"
                             className="grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:bg-red-50 hover:text-destructive"
                           >
@@ -627,6 +626,19 @@ export function ContactsView({
           </div>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmationDialog
+        open={contactToDelete !== null}
+        onOpenChange={(open) => !open && setContactToDelete(null)}
+        itemLabel="contact"
+        description={
+          contactToDelete
+            ? `This will permanently delete ${contactToDelete.first_name} ${contactToDelete.last_name} and their CRM record. This action cannot be undone.`
+            : undefined
+        }
+        isPending={deleteMutation.isPending}
+        error={deleteMutation.error}
+        onConfirm={() => contactToDelete && deleteMutation.mutate(contactToDelete.id)}
+      />
     </div>
   );
 }

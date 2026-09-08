@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Check, Trash2, Mail, Sparkles, CheckCheck } from "lucide-react";
@@ -7,6 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 type NotificationCenterProps = {
   userId: string;
@@ -14,6 +16,10 @@ type NotificationCenterProps = {
 
 export function NotificationCenter({ userId }: NotificationCenterProps) {
   const qc = useQueryClient();
+  const [notificationToDelete, setNotificationToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   const { data: notifications = [] } = useQuery({
     queryKey: ["notifications", userId],
@@ -39,6 +45,7 @@ export function NotificationCenter({ userId }: NotificationCenterProps) {
       if (error) throw error;
     },
     onSuccess: () => {
+      setNotificationToDelete(null);
       qc.invalidateQueries({ queryKey: ["notifications", userId] });
     },
   });
@@ -160,7 +167,7 @@ export function NotificationCenter({ userId }: NotificationCenterProps) {
                       </button>
                     )}
                     <button
-                      onClick={() => deleteNotification.mutate(n.id)}
+                      onClick={() => setNotificationToDelete({ id: n.id, title: n.title })}
                       title="Delete notification"
                       className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:text-destructive hover:bg-red-50"
                     >
@@ -173,6 +180,19 @@ export function NotificationCenter({ userId }: NotificationCenterProps) {
           )}
         </div>
       </DropdownMenuContent>
+      <DeleteConfirmationDialog
+        open={notificationToDelete !== null}
+        onOpenChange={(open) => !open && setNotificationToDelete(null)}
+        itemLabel="notification"
+        description={
+          notificationToDelete
+            ? `This will permanently delete "${notificationToDelete.title}" from your notifications.`
+            : undefined
+        }
+        isPending={deleteNotification.isPending}
+        error={deleteNotification.error}
+        onConfirm={() => notificationToDelete && deleteNotification.mutate(notificationToDelete.id)}
+      />
     </DropdownMenu>
   );
 }

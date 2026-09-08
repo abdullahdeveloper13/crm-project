@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { formatDate, PRIORITY_CONFIG, logAuditEvent } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 type TaskRow = Database["public"]["Tables"]["tasks"]["Row"];
 
@@ -34,6 +35,7 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskRow | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<TaskRow | null>(null);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -169,6 +171,7 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
     },
     onSuccess: () => {
       toast.success("Task deleted");
+      setTaskToDelete(null);
       qc.invalidateQueries({ queryKey: ["tasks", orgId] });
     },
     onError: (err) => {
@@ -392,11 +395,7 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
                       )}
                       {canEdit && (
                         <button
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to delete this task?`)) {
-                              deleteMutation.mutate(t.id);
-                            }
-                          }}
+                          onClick={() => setTaskToDelete(t)}
                           title="Delete Task"
                           className="grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:bg-red-50 hover:text-destructive"
                         >
@@ -533,6 +532,19 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
           </form>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmationDialog
+        open={taskToDelete !== null}
+        onOpenChange={(open) => !open && setTaskToDelete(null)}
+        itemLabel="task"
+        description={
+          taskToDelete
+            ? `This will permanently delete ${taskToDelete.title} and its action item record. This action cannot be undone.`
+            : undefined
+        }
+        isPending={deleteMutation.isPending}
+        error={deleteMutation.error}
+        onConfirm={() => taskToDelete && deleteMutation.mutate(taskToDelete.id)}
+      />
     </div>
   );
 }

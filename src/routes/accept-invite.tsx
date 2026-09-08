@@ -23,6 +23,12 @@ type InviteRow = {
 
 export const Route = createFileRoute("/accept-invite")({
   validateSearch: (s) => search.parse(s),
+  head: () => ({
+    meta: [
+      { title: "Accept invitation | NovaCRM AI" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: AcceptInvite,
 });
 

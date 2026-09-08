@@ -6,6 +6,7 @@ import { UserPlus, Copy, Trash2, Loader2, Users, Clock, Shield, Check } from "lu
 import { toast } from "sonner";
 import { formatDate, logAuditEvent, type AppRole } from "@/lib/crm-helpers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 type ProfileSummary = {
   full_name: string | null;
@@ -35,6 +36,7 @@ export function TeamMembersView({ orgId, userId, canManage }: TeamMembersViewPro
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<AppRole>("sales");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [memberToRemove, setMemberToRemove] = useState<{ id: string; name: string } | null>(null);
 
   const members = useQuery({
     queryKey: ["org-members", orgId],
@@ -139,6 +141,7 @@ export function TeamMembersView({ orgId, userId, canManage }: TeamMembersViewPro
     },
     onSuccess: () => {
       toast.success("Member removed");
+      setMemberToRemove(null);
       qc.invalidateQueries({ queryKey: ["org-members", orgId] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to remove"),
@@ -315,11 +318,7 @@ export function TeamMembersView({ orgId, userId, canManage }: TeamMembersViewPro
                     <td className="px-5 py-4 text-right">
                       {canManage && !isCurrentUser && m.role !== "owner" && (
                         <button
-                          onClick={() => {
-                            if (confirm(`Remove ${name} from this organization?`)) {
-                              removeMember.mutate(m.id);
-                            }
-                          }}
+                          onClick={() => setMemberToRemove({ id: m.id, name })}
                           className="inline-flex items-center gap-1 text-xs text-destructive hover:underline"
                         >
                           <Trash2 className="h-3.5 w-3.5" /> Remove
@@ -333,6 +332,22 @@ export function TeamMembersView({ orgId, userId, canManage }: TeamMembersViewPro
           </table>
         </div>
       </section>
+
+      <DeleteConfirmationDialog
+        open={memberToRemove !== null}
+        onOpenChange={(open) => !open && setMemberToRemove(null)}
+        title="Remove this member?"
+        itemLabel="team member"
+        description={
+          memberToRemove
+            ? `${memberToRemove.name} will lose access to this workspace. This action can be reversed by inviting them again.`
+            : undefined
+        }
+        confirmLabel="Remove member"
+        isPending={removeMember.isPending}
+        error={removeMember.error}
+        onConfirm={() => memberToRemove && removeMember.mutate(memberToRemove.id)}
+      />
 
       {/* Pending Invitations */}
       {canManage && (

@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import { formatCurrency, formatDate, logAuditEvent } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 type CompanyRow = Database["public"]["Tables"]["companies"]["Row"];
 
@@ -31,6 +32,7 @@ export function CompaniesView({ orgId, userId, canEdit }: CompaniesViewProps) {
   const [selectedIndustry, setSelectedIndustry] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<CompanyRow | null>(null);
+  const [companyToDelete, setCompanyToDelete] = useState<CompanyRow | null>(null);
 
   // Form state
   const [name, setName] = useState("");
@@ -126,6 +128,7 @@ export function CompaniesView({ orgId, userId, canEdit }: CompaniesViewProps) {
     },
     onSuccess: () => {
       toast.success("Company deleted");
+      setCompanyToDelete(null);
       qc.invalidateQueries({ queryKey: ["companies", orgId] });
     },
     onError: (err) => {
@@ -314,11 +317,7 @@ export function CompaniesView({ orgId, userId, canEdit }: CompaniesViewProps) {
                         )}
                         {canEdit && (
                           <button
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete ${c.name}?`)) {
-                                deleteMutation.mutate(c.id);
-                              }
-                            }}
+                            onClick={() => setCompanyToDelete(c)}
                             title="Delete Company"
                             className="grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:bg-red-50 hover:text-destructive"
                           >
@@ -444,6 +443,19 @@ export function CompaniesView({ orgId, userId, canEdit }: CompaniesViewProps) {
           </form>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmationDialog
+        open={companyToDelete !== null}
+        onOpenChange={(open) => !open && setCompanyToDelete(null)}
+        itemLabel="company"
+        description={
+          companyToDelete
+            ? `This will permanently delete ${companyToDelete.name} and its CRM record. This action cannot be undone.`
+            : undefined
+        }
+        isPending={deleteMutation.isPending}
+        error={deleteMutation.error}
+        onConfirm={() => companyToDelete && deleteMutation.mutate(companyToDelete.id)}
+      />
     </div>
   );
 }

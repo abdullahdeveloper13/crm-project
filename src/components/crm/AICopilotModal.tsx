@@ -109,8 +109,8 @@ Your Sales Team`;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] min-h-0 max-w-2xl flex-col gap-0 overflow-hidden p-4 sm:p-6">
+        <DialogHeader className="shrink-0 pb-4 pr-8">
           <div className="flex items-center gap-2">
             <div className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-elevated">
               <Bot className="h-4 w-4" />
@@ -124,7 +124,7 @@ Your Sales Team`;
           </div>
         </DialogHeader>
 
-        <div className="mt-2 space-y-4">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pr-1">
           <div className="flex flex-wrap gap-2">
             {[
               { id: "email", label: "Draft Outreach Email" },
@@ -183,7 +183,7 @@ Your Sales Team`;
           </div>
 
           {generatedResult && (
-            <div className="mt-4 rounded-xl border border-border bg-white p-4 shadow-sm">
+            <div className="mt-4 min-w-0 rounded-xl border border-border bg-white p-4 shadow-sm">
               <div className="flex items-center justify-between pb-2 mb-2 border-b border-border">
                 <span className="text-xs font-semibold text-primary uppercase tracking-wider">
                   AI Generated Output
@@ -200,7 +200,7 @@ Your Sales Team`;
                   {copied ? "Copied" : "Copy to clipboard"}
                 </button>
               </div>
-              <pre className="whitespace-pre-wrap text-sm font-sans text-foreground leading-relaxed">
+              <pre className="max-w-full whitespace-pre-wrap break-words text-sm font-sans leading-relaxed text-foreground">
                 {generatedResult}
               </pre>
             </div>

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Building2, Trash2, Loader2, Save, AlertTriangle, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate, logAuditEvent, type AppRole } from "@/lib/crm-helpers";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 type OrgSettingsViewProps = {
   org: {
@@ -22,6 +23,7 @@ export function OrgSettingsView({ org, myRole, userId }: OrgSettingsViewProps) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [name, setName] = useState(org.name);
+  const [confirmation, setConfirmation] = useState<"leave" | "delete" | null>(null);
 
   const canEdit = myRole === "owner" || myRole === "admin";
   const isOwner = myRole === "owner";
@@ -59,6 +61,7 @@ export function OrgSettingsView({ org, myRole, userId }: OrgSettingsViewProps) {
     },
     onSuccess: () => {
       toast.success("Organization deleted successfully");
+      setConfirmation(null);
       navigate({ to: "/organizations" });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to delete"),
@@ -79,6 +82,7 @@ export function OrgSettingsView({ org, myRole, userId }: OrgSettingsViewProps) {
     },
     onSuccess: () => {
       toast.success("You have left the organization");
+      setConfirmation(null);
       navigate({ to: "/organizations" });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to leave"),
@@ -209,11 +213,7 @@ export function OrgSettingsView({ org, myRole, userId }: OrgSettingsViewProps) {
             </p>
           </div>
           <button
-            onClick={() => {
-              if (confirm("Are you sure you want to leave this workspace?")) {
-                leaveOrg.mutate();
-              }
-            }}
+            onClick={() => setConfirmation("leave")}
             disabled={isOwner}
             title={isOwner ? "Owners must transfer ownership before leaving" : undefined}
             className="rounded-xl border border-border bg-white px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-50"
@@ -232,16 +232,7 @@ export function OrgSettingsView({ org, myRole, userId }: OrgSettingsViewProps) {
               </p>
             </div>
             <button
-              onClick={() => {
-                const confirmed = prompt(
-                  `Type "${org.name}" to confirm deleting this entire organization:`,
-                );
-                if (confirmed === org.name) {
-                  deleteOrg.mutate();
-                } else if (confirmed !== null) {
-                  toast.error("Organization name did not match");
-                }
-              }}
+              onClick={() => setConfirmation("delete")}
               disabled={deleteOrg.isPending}
               className="inline-flex items-center gap-1.5 rounded-xl bg-destructive px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-red-700"
             >
@@ -251,6 +242,21 @@ export function OrgSettingsView({ org, myRole, userId }: OrgSettingsViewProps) {
           </div>
         )}
       </section>
+      <DeleteConfirmationDialog
+        open={confirmation !== null}
+        onOpenChange={(open) => !open && setConfirmation(null)}
+        title={confirmation === "leave" ? "Leave this workspace?" : "Delete this workspace?"}
+        itemLabel={confirmation === "leave" ? "workspace access" : "workspace"}
+        description={
+          confirmation === "leave"
+            ? "You will lose access to this workspace until a member invites you again."
+            : `This will permanently delete ${org.name}, its CRM data, and its team access. This action cannot be undone.`
+        }
+        confirmLabel={confirmation === "leave" ? "Leave workspace" : "Delete workspace"}
+        isPending={confirmation === "leave" ? leaveOrg.isPending : deleteOrg.isPending}
+        error={confirmation === "leave" ? leaveOrg.error : deleteOrg.error}
+        onConfirm={() => (confirmation === "leave" ? leaveOrg.mutate() : deleteOrg.mutate())}
+      />
     </div>
   );
 }
