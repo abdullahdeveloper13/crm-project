@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ShieldAlert, Search, Loader2, Clock, Filter, User, Eye } from "lucide-react";
 import { formatDate } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SelectField } from "@/components/ui/select-field";
 
 type AuditLogsViewProps = {
   orgId: string;
@@ -69,7 +70,7 @@ export function AuditLogsView({ orgId }: AuditLogsViewProps) {
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <select
+          <SelectField
             value={selectedEntity}
             onChange={(e) => setSelectedEntity(e.target.value)}
             className="rounded-xl border border-input bg-background px-3 py-2 text-sm capitalize outline-none"
@@ -82,7 +83,7 @@ export function AuditLogsView({ orgId }: AuditLogsViewProps) {
             <option value="activity">Activities</option>
             <option value="invitation">Invitations</option>
             <option value="organization_member">Members</option>
-          </select>
+          </SelectField>
         </div>
       </div>
 

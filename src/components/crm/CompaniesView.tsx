@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { formatCurrency, formatDate, logAuditEvent } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
+import { SelectField } from "@/components/ui/select-field";
 
 type CompanyRow = Database["public"]["Tables"]["companies"]["Row"];
 
@@ -205,7 +206,7 @@ export function CompaniesView({ orgId, userId, canEdit }: CompaniesViewProps) {
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <select
+          <SelectField
             value={selectedIndustry}
             onChange={(e) => setSelectedIndustry(e.target.value)}
             className="rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none"
@@ -218,7 +219,7 @@ export function CompaniesView({ orgId, userId, canEdit }: CompaniesViewProps) {
             <option value="Manufacturing">Manufacturing</option>
             <option value="Consulting">Consulting</option>
             <option value="Other">Other</option>
-          </select>
+          </SelectField>
         </div>
       </div>
 
@@ -375,7 +376,7 @@ export function CompaniesView({ orgId, userId, canEdit }: CompaniesViewProps) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">Industry</label>
-                <select
+                <SelectField
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none"
@@ -387,13 +388,13 @@ export function CompaniesView({ orgId, userId, canEdit }: CompaniesViewProps) {
                   <option value="Manufacturing">Manufacturing</option>
                   <option value="Consulting">Consulting</option>
                   <option value="Other">Other</option>
-                </select>
+                </SelectField>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
                   Company Size
                 </label>
-                <select
+                <SelectField
                   value={size}
                   onChange={(e) => setSize(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none"
@@ -403,7 +404,7 @@ export function CompaniesView({ orgId, userId, canEdit }: CompaniesViewProps) {
                   <option value="51-200">51-200 employees</option>
                   <option value="201-1000">201-1000 employees</option>
                   <option value="1000+">1000+ employees</option>
-                </select>
+                </SelectField>
               </div>
             </div>
 

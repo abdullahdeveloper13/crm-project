@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { formatDate, PRIORITY_CONFIG, logAuditEvent } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
+import { SelectField } from "@/components/ui/select-field";
 
 type TaskRow = Database["public"]["Tables"]["tasks"]["Row"];
 
@@ -259,7 +260,7 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <select
+          <SelectField
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
             className="rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none"
@@ -267,8 +268,8 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
             <option value="all">All Statuses</option>
             <option value="open">Open / Pending</option>
             <option value="completed">Completed</option>
-          </select>
-          <select
+          </SelectField>
+          <SelectField
             value={selectedPriority}
             onChange={(e) => setSelectedPriority(e.target.value)}
             className="rounded-xl border border-input bg-background px-3 py-2 text-sm capitalize outline-none"
@@ -278,7 +279,7 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
             <option value="high">High</option>
             <option value="normal">Normal</option>
             <option value="low">Low</option>
-          </select>
+          </SelectField>
         </div>
       </div>
 
@@ -453,7 +454,7 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">Priority</label>
-                <select
+                <SelectField
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none capitalize"
@@ -462,7 +463,7 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
                   <option value="high">High</option>
                   <option value="normal">Normal</option>
                   <option value="low">Low</option>
-                </select>
+                </SelectField>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">Due Date</label>
@@ -480,7 +481,7 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
                 <label className="block text-xs font-semibold text-foreground mb-1">
                   Link to Deal
                 </label>
-                <select
+                <SelectField
                   value={dealId}
                   onChange={(e) => setDealId(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none"
@@ -491,13 +492,13 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
                       {d.title}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
                   Link to Contact
                 </label>
-                <select
+                <SelectField
                   value={contactId}
                   onChange={(e) => setContactId(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none"
@@ -508,7 +509,7 @@ export function TasksView({ orgId, userId, canEdit }: TasksViewProps) {
                       {c.first_name} {c.last_name}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </div>
             </div>
 

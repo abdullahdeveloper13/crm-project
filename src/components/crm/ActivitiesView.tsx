@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { formatDate, logAuditEvent, type ActivityKind } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
+import { SelectField } from "@/components/ui/select-field";
 
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 
@@ -210,7 +211,7 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <select
+          <SelectField
             value={selectedKind}
             onChange={(e) => setSelectedKind(e.target.value)}
             className="rounded-xl border border-input bg-background px-3 py-2 text-sm capitalize outline-none"
@@ -221,7 +222,7 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
             <option value="meeting">Meetings</option>
             <option value="note">Notes</option>
             <option value="task">Tasks</option>
-          </select>
+          </SelectField>
         </div>
       </div>
 
@@ -341,7 +342,7 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
               <label className="block text-xs font-semibold text-foreground mb-1">
                 Activity Type
               </label>
-              <select
+              <SelectField
                 value={kind}
                 onChange={(e) => setKind(e.target.value as ActivityKind)}
                 className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none capitalize"
@@ -351,7 +352,7 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
                 <option value="meeting">Meeting</option>
                 <option value="note">Note / Memo</option>
                 <option value="task">Task</option>
-              </select>
+              </SelectField>
             </div>
 
             <div>
@@ -383,7 +384,7 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
                 <label className="block text-xs font-semibold text-foreground mb-1">
                   Associated Deal
                 </label>
-                <select
+                <SelectField
                   value={dealId}
                   onChange={(e) => setDealId(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none"
@@ -394,13 +395,13 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
                       {d.title}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
                   Associated Contact
                 </label>
-                <select
+                <SelectField
                   value={contactId}
                   onChange={(e) => setContactId(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none"
@@ -411,7 +412,7 @@ export function ActivitiesView({ orgId, userId, canEdit }: ActivitiesViewProps) 
                       {c.first_name} {c.last_name}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </div>
             </div>
 

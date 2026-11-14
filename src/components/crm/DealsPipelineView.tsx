@@ -27,6 +27,7 @@ import {
 } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
+import { SelectField } from "@/components/ui/select-field";
 
 type DealRow = Database["public"]["Tables"]["deals"]["Row"];
 
@@ -577,7 +578,7 @@ export function DealsPipelineView({
                 <label className="block text-xs font-semibold text-foreground mb-1">
                   Pipeline Stage
                 </label>
-                <select
+                <SelectField
                   value={stage}
                   onChange={(e) => setStage(e.target.value as CrmStage)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none capitalize"
@@ -587,7 +588,7 @@ export function DealsPipelineView({
                   <option value="proposal">Proposal</option>
                   <option value="won">Closed Won</option>
                   <option value="lost">Closed Lost</option>
-                </select>
+                </SelectField>
               </div>
             </div>
 
@@ -596,7 +597,7 @@ export function DealsPipelineView({
                 <label className="block text-xs font-semibold text-foreground mb-1">
                   Associated Company
                 </label>
-                <select
+                <SelectField
                   value={companyId}
                   onChange={(e) => setCompanyId(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none"
@@ -607,13 +608,13 @@ export function DealsPipelineView({
                       {c.name}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
                   Primary Contact
                 </label>
-                <select
+                <SelectField
                   value={contactId}
                   onChange={(e) => setContactId(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none"
@@ -624,7 +625,7 @@ export function DealsPipelineView({
                       {c.first_name} {c.last_name}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </div>
             </div>
 

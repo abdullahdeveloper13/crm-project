@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { formatDate, logAuditEvent, type AppRole } from "@/lib/crm-helpers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
+import { SelectField } from "@/components/ui/select-field";
 
 type ProfileSummary = {
   full_name: string | null;
@@ -217,7 +218,7 @@ export function TeamMembersView({ orgId, userId, canManage }: TeamMembersViewPro
               onChange={(e) => setInviteEmail(e.target.value)}
               className="flex-1 rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20"
             />
-            <select
+            <SelectField
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value as AppRole)}
               className="rounded-xl border border-input bg-background px-3 py-2.5 text-sm capitalize outline-none"
@@ -227,7 +228,7 @@ export function TeamMembersView({ orgId, userId, canManage }: TeamMembersViewPro
                   {r}
                 </option>
               ))}
-            </select>
+            </SelectField>
             <button
               disabled={invite.isPending || !inviteEmail.trim()}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-elevated hover:opacity-95 disabled:opacity-60"
@@ -293,7 +294,7 @@ export function TeamMembersView({ orgId, userId, canManage }: TeamMembersViewPro
                     </td>
                     <td className="px-5 py-4">
                       {canManage && !isCurrentUser && m.role !== "owner" ? (
-                        <select
+                        <SelectField
                           value={m.role}
                           onChange={(e) =>
                             updateRole.mutate({ id: m.id, role: e.target.value as AppRole })
@@ -305,7 +306,7 @@ export function TeamMembersView({ orgId, userId, canManage }: TeamMembersViewPro
                               {r}
                             </option>
                           ))}
-                        </select>
+                        </SelectField>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-xs font-semibold capitalize text-foreground">
                           <Shield className="h-3 w-3 text-primary" /> {m.role}

@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { STAGE_CONFIG, formatDate, logAuditEvent, type CrmStage } from "@/lib/crm-helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
+import { SelectField } from "@/components/ui/select-field";
 
 type ContactRow = Database["public"]["Tables"]["contacts"]["Row"];
 
@@ -317,7 +318,7 @@ export function ContactsView({
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <select
+          <SelectField
             value={selectedStage}
             onChange={(e) => setSelectedStage(e.target.value)}
             className="rounded-xl border border-input bg-background px-3 py-2 text-sm capitalize outline-none"
@@ -328,7 +329,7 @@ export function ContactsView({
             <option value="proposal">Proposal</option>
             <option value="won">Won</option>
             <option value="lost">Lost</option>
-          </select>
+          </SelectField>
         </div>
       </div>
 
@@ -533,7 +534,7 @@ export function ContactsView({
                 <label className="block text-xs font-semibold text-foreground mb-1">
                   Lead Source
                 </label>
-                <select
+                <SelectField
                   value={source}
                   onChange={(e) => setSource(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none"
@@ -543,7 +544,7 @@ export function ContactsView({
                   <option value="LinkedIn">LinkedIn</option>
                   <option value="Cold Outreach">Cold Outreach</option>
                   <option value="Event">Event / Conference</option>
-                </select>
+                </SelectField>
               </div>
             </div>
 
@@ -551,7 +552,7 @@ export function ContactsView({
               <label className="block text-xs font-semibold text-foreground mb-1">
                 Pipeline Stage
               </label>
-              <select
+              <SelectField
                 value={stage}
                 onChange={(e) => setStage(e.target.value as CrmStage)}
                 className="w-full rounded-xl border border-input bg-background p-2.5 text-sm outline-none capitalize"
@@ -561,7 +562,7 @@ export function ContactsView({
                 <option value="proposal">Proposal</option>
                 <option value="won">Won</option>
                 <option value="lost">Lost</option>
-              </select>
+              </SelectField>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
